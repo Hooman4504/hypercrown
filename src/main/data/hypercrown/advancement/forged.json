@@ -1,0 +1,7 @@
+{
+  "parent": "hypercrown:fragment",
+  "display": { "icon": {"id": "hypercrown:hypercrown"},
+    "title": {"translate": "advancement.hypercrown.forged.title"}, "description": {"translate": "advancement.hypercrown.forged.desc"},
+    "frame": "challenge", "announce_to_chat": true },
+  "criteria": { "has": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ {"items": "hypercrown:hypercrown"} ] } } }
+}

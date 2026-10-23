@@ -1,0 +1,44 @@
+package com.hooman.hypercrown.data;
+
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.level.saveddata.SavedData;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+/** World-wide record of forged crowns (stored in the overworld's data folder). */
+public class CrownWorldData extends SavedData {
+    private int crownsForged;
+    private final List<UUID> forgers = new ArrayList<>();
+
+    public static CrownWorldData get(MinecraftServer server) {
+        return server.overworld().getDataStorage().computeIfAbsent(
+                new SavedData.Factory<>(CrownWorldData::new, CrownWorldData::load, null), "hypercrown_world");
+    }
+
+    private static CrownWorldData load(CompoundTag tag, HolderLookup.Provider provider) {
+        CrownWorldData d = new CrownWorldData();
+        d.crownsForged = tag.getInt("crownsForged");
+        ListTag list = tag.getList("forgers", 11); // 11 = int array
+        for (int i = 0; i < list.size(); i++) d.forgers.add(NbtUtils.loadUUID(list.get(i)));
+        return d;
+    }
+
+    @Override
+    public CompoundTag save(CompoundTag tag, HolderLookup.Provider provider) {
+        tag.putInt("crownsForged", crownsForged);
+        ListTag list = new ListTag();
+        forgers.forEach(u -> list.add(NbtUtils.createUUID(u)));
+        tag.put("forgers", list);
+        return tag;
+    }
+
+    public int crownsForged() { return crownsForged; }
+    public void recordForge(UUID player) { crownsForged++; forgers.add(player); setDirty(); }
+    public void reset() { crownsForged = 0; forgers.clear(); setDirty(); }
+}

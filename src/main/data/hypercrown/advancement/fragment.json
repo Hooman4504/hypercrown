@@ -1,0 +1,6 @@
+{
+  "display": { "icon": {"id": "hypercrown:crown_fragment"},
+    "title": {"translate": "advancement.hypercrown.fragment.title"}, "description": {"translate": "advancement.hypercrown.fragment.desc"},
+    "background": "minecraft:textures/block/gold_block.png", "frame": "task" },
+  "criteria": { "has": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [ {"items": "hypercrown:crown_fragment"} ] } } }
+}
