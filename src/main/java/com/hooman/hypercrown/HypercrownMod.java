@@ -11,7 +11,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import org.slf4j.Logger;
 
-/** Entry point. Game-bus handlers register themselves via @EventBusSubscriber. */
+/** Entry point. Game-bus handlers register themselves via @EventBusSubscribe. */
 @Mod(HypercrownMod.MODID)
 public final class HypercrownMod {
     public static final String MODID = "hypercrown";
