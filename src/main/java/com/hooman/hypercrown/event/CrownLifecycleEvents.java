@@ -11,6 +11,7 @@ import com.hooman.hypercrown.registry.ModRegistries;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -32,6 +33,7 @@ import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import org.joml.Vector3f;
 
 /** Boss tracking, the one-time awakening ritual, death handling, admin command. */
 @EventBusSubscriber(modid = HypercrownMod.MODID)
@@ -98,7 +100,22 @@ public final class CrownLifecycleEvents {
 
         LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(sl);
         if (bolt != null) { bolt.moveTo(Vec3.atBottomCenterOf(pos)); bolt.setVisualOnly(true); sl.addFreshEntity(bolt); }
-        sl.sendParticles(ParticleTypes.TOTEM_OF_UNDYING, pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5, 150, 1, 1.5, 1, 0.5);
+        Vec3 heart = Vec3.atCenterOf(pos).add(0, 0.5, 0);
+        sl.sendParticles(ParticleTypes.FLASH, heart.x, heart.y, heart.z, 1, 0, 0, 0, 0);
+        sl.sendParticles(ParticleTypes.TOTEM_OF_UNDYING, heart.x, heart.y, heart.z, 220, 1, 1.5, 1, 0.42);
+        sl.sendParticles(ParticleTypes.REVERSE_PORTAL, heart.x, heart.y, heart.z, 180, 0.9, 1.1, 0.9, 0.12);
+        sl.sendParticles(ParticleTypes.END_ROD, heart.x, heart.y, heart.z, 120, 0.75, 1.4, 0.75, 0.1);
+        DustParticleOptions gold = new DustParticleOptions(new Vector3f(1.0f, 0.8f, 0.22f), 1.4f);
+        DustParticleOptions violet = new DustParticleOptions(new Vector3f(0.64f, 0.25f, 1.0f), 1.2f);
+        sl.sendParticles(gold, heart.x, heart.y, heart.z, 150, 0.8, 0.9, 0.8, 0.04);
+        sl.sendParticles(violet, heart.x, heart.y, heart.z, 100, 0.7, 1.1, 0.7, 0.03);
+        for (int i = 0; i < 48; i++) {
+            double angle = i * (Math.PI * 2 / 48);
+            double radius = 1.2 + 0.18 * Math.sin(angle * 5);
+            double x = heart.x + Math.cos(angle) * radius;
+            double z = heart.z + Math.sin(angle) * radius;
+            sl.sendParticles(i % 2 == 0 ? gold : violet, x, pos.getY() + 0.15, z, 1, 0, 0.025, 0, 0);
+        }
         sl.playSound(null, pos, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 2f, 1f);
         sp.getServer().getPlayerList().broadcastSystemMessage(
                 Component.translatable("message.hypercrown.forged", sp.getDisplayName()).withStyle(ChatFormatting.GOLD), false);
