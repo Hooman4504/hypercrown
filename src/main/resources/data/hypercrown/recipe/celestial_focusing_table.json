@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["OGO", "GNG", "OGO"],
+  "key": { "O": { "item": "minecraft:obsidian" }, "G": { "item": "minecraft:gold_ingot" }, "N": { "item": "minecraft:nether_star" } },
+  "result": { "id": "hypercrown:celestial_focusing_table", "count": 1 }
+}

@@ -1,0 +1,1 @@
+{ "parent": "minecraft:block/crafting_table", "textures": { "particle": "minecraft:block/obsidian", "down": "minecraft:block/obsidian", "up": "minecraft:block/gold_block", "north": "minecraft:block/crying_obsidian", "south": "minecraft:block/obsidian", "west": "minecraft:block/crying_obsidian", "east": "minecraft:block/obsidian" } }

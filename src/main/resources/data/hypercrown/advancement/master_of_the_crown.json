@@ -1,0 +1,7 @@
+{
+  "parent": "hypercrown:forged",
+  "display": { "icon": {"id": "minecraft:nether_star"},
+    "title": {"translate": "advancement.hypercrown.master.title"}, "description": {"translate": "advancement.hypercrown.master.desc"},
+    "frame": "challenge", "hidden": true },
+  "criteria": { "used": { "trigger": "minecraft:impossible" } }
+}

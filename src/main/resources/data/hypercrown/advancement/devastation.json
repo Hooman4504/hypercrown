@@ -1,0 +1,13 @@
+{
+  "parent": "hypercrown:first_discovery",
+  "display": {
+    "icon": { "id": "hypercrown:apocalyptic_ruby" },
+    "title": { "translate": "advancement.hypercrown.devastation.title" },
+    "description": { "translate": "advancement.hypercrown.devastation.desc" },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": { "used": { "trigger": "minecraft:impossible" } }
+}

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [" E ", "PDP", " E "],
+  "key": {
+    "E": { "item": "minecraft:ender_pearl" },
+    "P": { "item": "minecraft:phantom_membrane" },
+    "D": { "item": "minecraft:diamond" }
+  },
+  "result": { "id": "hypercrown:strider_gem", "count": 1 }
+}

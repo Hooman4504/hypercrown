@@ -1,0 +1,7 @@
+{
+  "type": "hypercrown:structure_gem",
+  "conditions": [],
+  "table": "minecraft:chests/ancient_city_ice_box",
+  "gem": "solar_opal",
+  "chance": 0.01
+}

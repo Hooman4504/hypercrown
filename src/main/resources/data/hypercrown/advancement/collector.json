@@ -1,0 +1,13 @@
+{
+  "parent": "hypercrown:first_discovery",
+  "display": {
+    "icon": { "id": "hypercrown:shadow_amethyst" },
+    "title": { "translate": "advancement.hypercrown.collector.title" },
+    "description": { "translate": "advancement.hypercrown.collector.desc" },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": { "collected": { "trigger": "minecraft:impossible" } }
+}

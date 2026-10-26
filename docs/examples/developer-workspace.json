@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "debugEnabled": false,
+  "abilities": [
+    {
+      "id": "custom_arc_pulse",
+      "name": "Arc Pulse",
+      "description": "A short ranged shock used to prototype a lightning ability.",
+      "core": false,
+      "active": true,
+      "enabled": true,
+      "cooldownSeconds": 8,
+      "manaCost": 0,
+      "damage": 6,
+      "range": 10,
+      "durationTicks": 60,
+      "trigger": "manual_test",
+      "condition": "target_exists",
+      "target": "nearest_enemy",
+      "action": "effect",
+      "effect": "minecraft:slowness",
+      "particle": "minecraft:electric_spark",
+      "sound": "minecraft:block.amethyst_block.chime",
+      "chain": ""
+    }
+  ],
+  "particles": [
+    {
+      "id": "arc_ring",
+      "name": "Arc Ring",
+      "particle": "minecraft:dust",
+      "position": "player",
+      "x": 0,
+      "y": 1.2,
+      "z": 0,
+      "delayTicks": 0,
+      "durationTicks": 20,
+      "intervalTicks": 2,
+      "count": 24,
+      "vx": 0,
+      "vy": 0.015,
+      "vz": 0,
+      "speed": 0.02,
+      "accelerationX": 0,
+      "accelerationY": 0.01,
+      "accelerationZ": 0,
+      "randomness": 0.2,
+      "radius": 1.4,
+      "height": 2,
+      "size": 0.9,
+      "red": 0.24,
+      "green": 0.72,
+      "blue": 1,
+      "alpha": 1,
+      "colorAnimation": "pulse",
+      "shape": "ring",
+      "condition": "always",
+      "path": "0,0,0;1,1,0;0,2,0"
+    }
+  ],
+  "sounds": [
+    {
+      "id": "arc_sequence",
+      "name": "Arc Charge and Release",
+      "sound": "minecraft:block.note_block.pling",
+      "volume": 0.8,
+      "pitch": 1.1,
+      "distance": 24,
+      "trigger": "cast",
+      "attachment": "player",
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "volumeVariance": 0.08,
+      "pitchVariance": 0.12,
+      "soundPool": "minecraft:block.note_block.pling,minecraft:block.amethyst_block.chime",
+      "sequence": "minecraft:block.note_block.pling@0@0.6@1.2;minecraft:block.note_block.bell@8@0.8@0.9"
+    }
+  ],
+  "configBackups": []
+}

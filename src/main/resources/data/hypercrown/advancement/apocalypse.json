@@ -1,0 +1,13 @@
+{
+  "parent": "hypercrown:gem_master",
+  "display": {
+    "icon": { "id": "hypercrown:tectonic_jade" },
+    "title": { "translate": "advancement.hypercrown.apocalypse.title" },
+    "description": { "translate": "advancement.hypercrown.apocalypse.desc" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": { "used": { "trigger": "minecraft:impossible" } }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "hypercrown:forged",
+  "display": { "icon": {"id": "minecraft:ender_pearl"},
+    "title": {"translate": "advancement.hypercrown.use_blink.title"}, "description": {"translate": "advancement.hypercrown.use_blink.desc"} },
+  "criteria": { "used": { "trigger": "minecraft:impossible" } }
+}

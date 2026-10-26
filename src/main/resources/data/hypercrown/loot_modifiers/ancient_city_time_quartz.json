@@ -1,0 +1,7 @@
+{
+  "type": "hypercrown:structure_gem",
+  "conditions": [],
+  "table": "minecraft:chests/ancient_city",
+  "gem": "time_quartz",
+  "chance": 0.01
+}

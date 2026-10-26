@@ -1,0 +1,7 @@
+{
+  "type": "hypercrown:structure_gem",
+  "conditions": [],
+  "table": "minecraft:chests/ancient_city",
+  "gem": "frost_topaz",
+  "chance": 0.01
+}

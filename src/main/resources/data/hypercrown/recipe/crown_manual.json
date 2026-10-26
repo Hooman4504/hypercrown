@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [" GP", "BPG", "PG "],
+  "key": {
+    "G": { "item": "minecraft:gold_ingot" },
+    "P": { "item": "minecraft:paper" },
+    "B": { "item": "minecraft:book" }
+  },
+  "result": { "id": "hypercrown:crown_manual", "count": 1 }
+}

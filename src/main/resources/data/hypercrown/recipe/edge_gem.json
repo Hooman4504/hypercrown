@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [" E ", "BDB", " E "],
+  "key": {
+    "E": { "item": "minecraft:echo_shard" },
+    "B": { "item": "minecraft:blaze_rod" },
+    "D": { "item": "minecraft:diamond" }
+  },
+  "result": { "id": "hypercrown:edge_gem", "count": 1 }
+}

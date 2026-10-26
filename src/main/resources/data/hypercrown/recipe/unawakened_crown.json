@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:crafting_shaped", "category": "misc",
+  "pattern": ["F F", " F "],
+  "key": {
+    "F": {"item": "hypercrown:crown_fragment"}
+  },
+  "result": {"id": "hypercrown:unawakened_crown", "count": 1}
+}

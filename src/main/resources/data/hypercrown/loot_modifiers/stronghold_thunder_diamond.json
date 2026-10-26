@@ -1,0 +1,7 @@
+{
+  "type": "hypercrown:structure_gem",
+  "conditions": [],
+  "table": "minecraft:chests/stronghold_library",
+  "gem": "thunder_diamond",
+  "chance": 0.03
+}

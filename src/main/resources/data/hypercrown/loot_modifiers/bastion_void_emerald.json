@@ -1,0 +1,7 @@
+{
+  "type": "hypercrown:structure_gem",
+  "conditions": [],
+  "table": "minecraft:chests/bastion_bridge",
+  "gem": "void_emerald",
+  "chance": 0.01
+}

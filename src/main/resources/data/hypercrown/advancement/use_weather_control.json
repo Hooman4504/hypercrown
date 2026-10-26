@@ -1,0 +1,6 @@
+{
+  "parent": "hypercrown:forged",
+  "display": { "icon": {"id": "minecraft:ender_pearl"},
+    "title": {"translate": "advancement.hypercrown.use_weather_control.title"}, "description": {"translate": "advancement.hypercrown.use_weather_control.desc"} },
+  "criteria": { "used": { "trigger": "minecraft:impossible" } }
+}

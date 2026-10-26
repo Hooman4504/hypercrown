@@ -1,0 +1,7 @@
+{
+  "type": "hypercrown:structure_gem",
+  "conditions": [],
+  "table": "minecraft:chests/ruined_portal",
+  "gem": "wind_sapphire",
+  "chance": 0.02
+}

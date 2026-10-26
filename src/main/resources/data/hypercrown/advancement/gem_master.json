@@ -1,0 +1,13 @@
+{
+  "parent": "hypercrown:collector",
+  "display": {
+    "icon": { "id": "hypercrown:time_quartz" },
+    "title": { "translate": "advancement.hypercrown.gem_master.title" },
+    "description": { "translate": "advancement.hypercrown.gem_master.desc" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": { "collected": { "trigger": "minecraft:impossible" } }
+}

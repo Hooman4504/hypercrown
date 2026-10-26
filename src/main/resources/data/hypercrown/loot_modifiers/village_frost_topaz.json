@@ -1,0 +1,7 @@
+{
+  "type": "hypercrown:structure_gem",
+  "conditions": [],
+  "table": "minecraft:chests/village/village_weaponsmith",
+  "gem": "frost_topaz",
+  "chance": 0.005
+}

@@ -1,0 +1,7 @@
+{
+  "type": "hypercrown:structure_gem",
+  "conditions": [],
+  "table": "minecraft:chests/bastion_other",
+  "gem": "celestial_sapphire",
+  "chance": 0.02
+}
