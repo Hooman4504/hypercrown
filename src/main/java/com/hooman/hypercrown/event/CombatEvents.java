@@ -4,6 +4,7 @@ import com.hooman.hypercrown.HypercrownMod;
 import com.hooman.hypercrown.ability.Ability;
 import com.hooman.hypercrown.ability.CrownHelper;
 import com.hooman.hypercrown.config.HypercrownConfig;
+import com.hooman.hypercrown.data.CrownPlayerData;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.DamageTypeTags;
@@ -44,35 +45,67 @@ public final class CombatEvents {
                 sl.sendParticles(ParticleTypes.SOUL, target.getX(), target.getY() + 1, target.getZ(), 20, 0.3, 0.5, 0.3, 0.05);
         }
 
+        long now = src.getEntity() instanceof Player sourcePlayer ? CrownHelper.serverTime(sourcePlayer) : 0;
+        if (src.getEntity() instanceof Player attacker && target != attacker && !src.is(DamageTypeTags.IS_EXPLOSION)
+                && CrownHelper.has(attacker, Ability.HYPERBREAK)) {
+            CrownPlayerData attackData = CrownHelper.data(attacker);
+            if (attackData.hyperbreakUntil > now) {
+                float bonus = Math.min(3.0f, event.getAmount() * 0.25f);
+                event.setAmount(event.getAmount() + bonus);
+                attackData.hyperbreakUntil = 0;
+                attacker.displayClientMessage(net.minecraft.network.chat.Component.translatable("message.hypercrown.hyperbreak.spent"), true);
+            }
+        }
+
         // Defense
         if (!(target instanceof Player p) || !CrownHelper.isCrownActive(p)) return;
         if (src.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) return; // /kill and void still work
 
-        if (HypercrownConfig.enabled(Ability.ELEMENTAL_IMMUNITY)
+        if (CrownHelper.has(p, Ability.ELEMENTAL_IMMUNITY)
                 && (src.is(DamageTypeTags.IS_FIRE) || src.is(DamageTypeTags.IS_EXPLOSION) || src.is(DamageTypeTags.IS_FALL))) {
             event.setCanceled(true);
             return;
         }
-        if (HypercrownConfig.enabled(Ability.INVINCIBILITY_FRAMES)
-                && p.level().getGameTime() - CrownHelper.data(p).lastHurtTick < HypercrownConfig.IFRAME_TICKS.get()) {
+        if (CrownHelper.has(p, Ability.INVINCIBILITY_FRAMES)
+                && CrownHelper.serverTime(p) - CrownHelper.data(p).lastHurtTick < HypercrownConfig.IFRAME_TICKS.get()) {
             event.setCanceled(true);
             return;
         }
         // Reflect a share of the *raw* damage (thorns damage is never re-reflected, which prevents loops).
-        if (HypercrownConfig.enabled(Ability.DAMAGE_REFLECTION) && src.getEntity() instanceof LivingEntity attacker
+        if (CrownHelper.has(p, Ability.DAMAGE_REFLECTION) && src.getEntity() instanceof LivingEntity attacker
                 && attacker != p && !src.is(DamageTypes.THORNS)) {
             attacker.hurt(p.damageSources().thorns(p),
                     event.getAmount() * (float) HypercrownConfig.scaled(HypercrownConfig.REFLECT_FRACTION));
         }
-        if (HypercrownConfig.enabled(Ability.DAMAGE_REDUCTION)) {
-            float reduction = (float) Mth.clamp(HypercrownConfig.scaled(HypercrownConfig.DAMAGE_REDUCTION), 0.0, 1.0);
+        if (CrownHelper.has(p, Ability.DAMAGE_REDUCTION)) {
+            float reduction = (float) (CrownHelper.isTacticalCrown(p)
+                    ? HypercrownConfig.balancedGemStrength(HypercrownConfig.DAMAGE_REDUCTION, 0.10)
+                    : Mth.clamp(HypercrownConfig.scaled(HypercrownConfig.DAMAGE_REDUCTION), 0.0, 1.0));
             event.setAmount(event.getAmount() * (1f - reduction));
+        }
+        now = CrownHelper.serverTime(p);
+        CrownPlayerData defense = CrownHelper.data(p);
+        if (defense.guardUntil > now && defense.guardRemaining > 0) {
+            float absorbed = Math.min(event.getAmount(), defense.guardRemaining);
+            defense.guardRemaining -= absorbed;
+            event.setAmount(event.getAmount() - absorbed);
         }
     }
 
     @SubscribeEvent
     public static void onDamagePost(LivingDamageEvent.Post event) {
         if (event.getEntity() instanceof Player p && CrownHelper.has(p, Ability.INVINCIBILITY_FRAMES))
-            CrownHelper.data(p).lastHurtTick = p.level().getGameTime();
+            CrownHelper.data(p).lastHurtTick = CrownHelper.serverTime(p);
+        if (!(event.getSource().getEntity() instanceof Player attacker) || event.getEntity() == attacker
+                || event.getSource().is(DamageTypeTags.IS_EXPLOSION)
+                || event.getNewDamage() <= 0 || !CrownHelper.has(attacker, Ability.HYPERSTEP)) return;
+        CrownPlayerData data = CrownHelper.data(attacker);
+        long now = CrownHelper.serverTime(attacker);
+        data.lastCombatTick = now;
+        if (now - data.lastMomentumGainTick >= 40 && data.momentum < 3) {
+            data.momentum++;
+            data.lastMomentumGainTick = now;
+            attacker.displayClientMessage(net.minecraft.network.chat.Component.translatable("message.hypercrown.momentum", data.momentum), true);
+        }
     }
 }

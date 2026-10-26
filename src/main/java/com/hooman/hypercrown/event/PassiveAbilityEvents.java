@@ -4,6 +4,7 @@ import com.hooman.hypercrown.HypercrownMod;
 import com.hooman.hypercrown.ability.Ability;
 import com.hooman.hypercrown.ability.CrownHelper;
 import com.hooman.hypercrown.config.HypercrownConfig;
+import com.hooman.hypercrown.data.CrownPlayerData;
 import com.hooman.hypercrown.network.ModNetwork;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
@@ -19,8 +20,8 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -58,8 +59,15 @@ public final class PassiveAbilityEvents {
         for (AttrBonus b : BONUSES) {
             AttributeInstance inst = p.getAttribute(b.attribute());
             if (inst == null) continue;
-            if (active && HypercrownConfig.enabled(b.ability())) {
-                double amount = b.amount().getAsDouble();
+            if (CrownHelper.has(p, b.ability())) {
+                double amount = CrownHelper.isTacticalCrown(p)
+                        ? switch (b.ability()) {
+                            case SPEED -> HypercrownConfig.balancedGemStrength(HypercrownConfig.SPEED_BONUS, 0.05);
+                            case WEAPON_MASTERY -> HypercrownConfig.balancedGemStrength(HypercrownConfig.DAMAGE_BONUS, 0.08);
+                            case KNOCKBACK_IMMUNITY -> 0.25;
+                            default -> b.amount().getAsDouble();
+                        }
+                        : b.amount().getAsDouble();
                 AttributeModifier existing = inst.getModifier(b.id());
                 if (existing == null || existing.amount() != amount) // avoid re-syncing every tick
                     inst.addOrUpdateTransientModifier(new AttributeModifier(b.id(), amount, b.op()));
@@ -71,19 +79,24 @@ public final class PassiveAbilityEvents {
         if (p.level().isClientSide || !active) return;
         ServerPlayer sp = (ServerPlayer) p;
 
-        if (HypercrownConfig.enabled(Ability.SURVIVAL) && p.tickCount % 20 == 0) {
+        if (CrownHelper.has(p, Ability.SURVIVAL) && p.tickCount % 20 == 0) {
             p.getFoodData().setFoodLevel(20);
             p.getFoodData().setSaturation(20f);
             if (p.getHealth() < p.getMaxHealth()) p.heal(2.0f * HypercrownConfig.POWER_SCALE.get().floatValue()); // 1 heart/s
             p.setAirSupply(p.getMaxAirSupply());
             p.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 400, 0, true, false, false));
         }
-        if (HypercrownConfig.enabled(Ability.STATUS_IMMUNITY) && p.tickCount % 10 == 0) {
+        if (CrownHelper.has(p, Ability.STATUS_IMMUNITY) && p.tickCount % 10 == 0) {
             p.getActiveEffects().stream().map(MobEffectInstance::getEffect)
                     .filter(h -> h.value().getCategory() == MobEffectCategory.HARMFUL)
                     .toList().forEach(p::removeEffect);
         }
-        if (HypercrownConfig.enabled(Ability.ELEMENTAL_IMMUNITY) && p.isOnFire()) p.clearFire();
+        if (CrownHelper.has(p, Ability.ELEMENTAL_IMMUNITY) && p.isOnFire()) p.clearFire();
+        if (CrownHelper.isCrownActive(p) && p.tickCount % 20 == 0) {
+            CrownPlayerData data = CrownHelper.data(p);
+            if (CrownHelper.isTacticalCrown(p) && data.momentum > 0
+                    && CrownHelper.serverTime(p) - data.lastCombatTick >= 100) data.momentum--;
+        }
         if (p.tickCount % 10 == 0) ModNetwork.syncTo(sp); // HUD cooldowns
     }
 

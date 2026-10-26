@@ -1,6 +1,6 @@
 {
   "parent": "hypercrown:forged",
-  "display": { "icon": {"id": "minecraft:ender_pearl"},
+  "display": { "icon": {"id": "minecraft:echo_shard"},
     "title": {"translate": "advancement.hypercrown.use_anchor.title"}, "description": {"translate": "advancement.hypercrown.use_blink.desc"} },
   "criteria": { "used": { "trigger": "minecraft:impossible" } }
 }

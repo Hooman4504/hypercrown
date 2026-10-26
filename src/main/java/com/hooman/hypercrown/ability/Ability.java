@@ -15,7 +15,9 @@ public enum Ability {
     INSTANT_MINING(false), AUTO_SMELT(false), DAMAGE_REFLECTION(false), INSTANT_KILL(false),
     MOB_PACIFICATION(false), INVINCIBILITY_FRAMES(false),
     // Active (keybind)
-    BLINK(true), ANCHOR(true), ENERGY_BEAM(true), WEATHER_CONTROL(true);
+    BLINK(true), ANCHOR(true), ENERGY_BEAM(true), WEATHER_CONTROL(true),
+    HYPERSTEP(true), HYPERBREAK(true), CROWN_GUARD(true), TACTICAL_AWARENESS(true),
+    PHASE_DASH(true), TIME_SNARE(true), CHAIN_LIGHTNING(true), CROWN_NOVA(true);
 
     public final boolean active;
 

@@ -1,6 +1,6 @@
 package com.hooman.hypercrown.item;
 
-import com.hooman.hypercrown.ability.Ability;
+import com.hooman.hypercrown.gem.CatastropheGem;
 import com.hooman.hypercrown.registry.ModRegistries;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
@@ -29,7 +29,19 @@ public class HypercrownItem extends ArmorItem {
     public void appendHoverText(ItemStack stack, TooltipContext ctx, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.hypercrown.lore1").withStyle(ChatFormatting.GOLD, ChatFormatting.ITALIC));
         tooltip.add(Component.translatable("tooltip.hypercrown.lore2").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
-        tooltip.add(Component.translatable("tooltip.hypercrown.abilities", Ability.values().length).withStyle(ChatFormatting.LIGHT_PURPLE));
+        tooltip.add(Component.translatable("tooltip.hypercrown.original_powers").withStyle(ChatFormatting.LIGHT_PURPLE));
+        tooltip.add(Component.translatable("tooltip.hypercrown.forge_hint").withStyle(ChatFormatting.AQUA));
+        CatastropheGem socketedGem = CatastropheGem.byId(stack.get(ModRegistries.SOCKETED_CATASTROPHE_GEM.get()));
+        if (socketedGem != null) {
+            tooltip.add(Component.translatable("tooltip.hypercrown.socketed_gem",
+                    Component.translatable("item.hypercrown." + socketedGem.id())).withStyle(ChatFormatting.AQUA));
+            tooltip.add(Component.translatable("tooltip.hypercrown.gem.socket_power." + socketedGem.id())
+                    .withStyle(ChatFormatting.LIGHT_PURPLE));
+        }
+        if (socketedGem == CatastropheGem.THUNDER_DIAMOND) {
+            tooltip.add(Component.translatable("tooltip.hypercrown.thunder_diamond_socketed")
+                    .withStyle(ChatFormatting.AQUA));
+        }
         CrownOwner owner = stack.get(ModRegistries.OWNER.get());
         tooltip.add(owner != null
                 ? Component.translatable("tooltip.hypercrown.bound", owner.name()).withStyle(ChatFormatting.YELLOW)

@@ -5,6 +5,7 @@ import com.hooman.hypercrown.ability.CrownHelper;
 import com.hooman.hypercrown.config.HypercrownConfig;
 import com.hooman.hypercrown.data.CrownPlayerData;
 import com.hooman.hypercrown.data.CrownWorldData;
+import com.hooman.hypercrown.dev.DeveloperToolService;
 import com.hooman.hypercrown.item.CrownOwner;
 import com.hooman.hypercrown.network.ModNetwork;
 import com.hooman.hypercrown.registry.ModRegistries;
@@ -94,9 +95,11 @@ public final class CrownLifecycleEvents {
             sp.getFoodData().setSaturation(0f);
         }
         ItemStack crown = new ItemStack(ModRegistries.HYPERCROWN.get());
+        java.util.UUID crownId = java.util.UUID.randomUUID();
         crown.set(ModRegistries.OWNER.get(), new CrownOwner(sp.getUUID(), sp.getGameProfile().getName()));
+        crown.set(ModRegistries.CROWN_ID.get(), crownId);
         sp.setItemInHand(event.getHand(), crown);
-        world.recordForge(sp.getUUID());
+        world.recordForge(sp.getUUID(), crownId);
 
         LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(sl);
         if (bolt != null) { bolt.moveTo(Vec3.atBottomCenterOf(pos)); bolt.setVisualOnly(true); sl.addFreshEntity(bolt); }
@@ -132,12 +135,20 @@ public final class CrownLifecycleEvents {
     /** keepOnDeath: pull the crown out of the death drops and return it on respawn. */
     @SubscribeEvent
     public static void onDrops(LivingDropsEvent event) {
-        if (!(event.getEntity() instanceof ServerPlayer sp) || !HypercrownConfig.KEEP_ON_DEATH.get()) return;
+        if (!(event.getEntity() instanceof ServerPlayer sp)) return;
         CrownPlayerData d = CrownHelper.data(sp);
         event.getDrops().removeIf(ie -> {
             if (!ie.getItem().is(ModRegistries.HYPERCROWN.get())) return false;
-            d.pendingReturn.add(ie.getItem().copy());
-            return true;
+            if (HypercrownConfig.KEEP_ON_DEATH.get()) {
+                d.pendingReturn.add(ie.getItem().copy());
+                return true;
+            }
+            if (HypercrownConfig.ALLOW_TRANSFER.get() && sp.getKillCredit() instanceof ServerPlayer killer) {
+                ie.getItem().set(ModRegistries.OWNER.get(),
+                        new CrownOwner(killer.getUUID(), killer.getGameProfile().getName()));
+                CrownWorldData.get(sp.getServer()).transferOwnership(killer.getUUID());
+            }
+            return false;
         });
     }
 
@@ -151,7 +162,10 @@ public final class CrownLifecycleEvents {
 
     @SubscribeEvent
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.getEntity() instanceof ServerPlayer sp) ModNetwork.syncTo(sp);
+        if (event.getEntity() instanceof ServerPlayer sp) {
+            ModNetwork.syncTo(sp);
+            DeveloperToolService.syncClient(sp);
+        }
     }
 
     /** /hypercrown status | reset (op level 2) */
@@ -168,6 +182,21 @@ public final class CrownLifecycleEvents {
                     CrownWorldData.get(ctx.getSource().getServer()).reset();
                     ctx.getSource().sendSuccess(() -> Component.literal("Hypercrown forge counter reset."), true);
                     return 1;
-                })));
+                }))
+                .then(Commands.literal("dev").executes(ctx -> {
+                    DeveloperToolService.open(ctx.getSource().getPlayerOrException());
+                    return 1;
+                }).then(Commands.literal("reload").executes(ctx -> {
+                    DeveloperToolService.handle(ctx.getSource().getPlayerOrException(), "reload", "");
+                    return 1;
+                }))));
+        event.getDispatcher().register(Commands.literal("hc").requires(s -> s.hasPermission(2))
+                .then(Commands.literal("dev").executes(ctx -> {
+                    DeveloperToolService.open(ctx.getSource().getPlayerOrException());
+                    return 1;
+                }).then(Commands.literal("reload").executes(ctx -> {
+                    DeveloperToolService.handle(ctx.getSource().getPlayerOrException(), "reload", "");
+                    return 1;
+                }))));
     }
 }
