@@ -20,7 +20,7 @@ import java.util.List;
 public final class ModNetwork {
 
     public static void register(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar r = event.registrar("1");
+        PayloadRegistrar r = event.registrar("2");
         r.playToServer(ActivateAbilityPayload.TYPE, ActivateAbilityPayload.STREAM_CODEC, ModNetwork::handleActivate);
         r.playToServer(GemActivationPayload.TYPE, GemActivationPayload.STREAM_CODEC, (p, ctx) -> ctx.enqueueWork(() -> {
             if (ctx.player() instanceof ServerPlayer player) GemActivationHandler.activate(player, p);
@@ -32,7 +32,7 @@ public final class ModNetwork {
             if (ctx.player() instanceof ServerPlayer player) DeveloperToolService.handle(player, p.action(), p.data());
         }));
         r.playToClient(SyncCooldownsPayload.TYPE, SyncCooldownsPayload.STREAM_CODEC,
-                (p, ctx) -> ctx.enqueueWork(() -> ClientCrownState.update(p.remaining())));
+                (p, ctx) -> ctx.enqueueWork(() -> ClientCrownState.update(p.remaining(), p.canonicalHypercrown(), ctx.player().getUUID())));
         r.playToClient(GemScreenShakePayload.TYPE, GemScreenShakePayload.STREAM_CODEC, (p, ctx) -> ctx.enqueueWork(() ->
                 com.hooman.hypercrown.client.GemVisualEvents.shake(p.ticks(), p.strength())));
         r.playToClient(DeveloperToolSnapshotPayload.TYPE, DeveloperToolSnapshotPayload.STREAM_CODEC, (p, ctx) -> ctx.enqueueWork(() ->
@@ -54,6 +54,6 @@ public final class ModNetwork {
         long now = sp.getServer().overworld().getGameTime();
         List<Integer> list = new ArrayList<>();
         for (Ability a : Ability.values()) list.add((int) Math.min(Integer.MAX_VALUE, d.remaining(a, now)));
-        PacketDistributor.sendToPlayer(sp, new SyncCooldownsPayload(list));
+        PacketDistributor.sendToPlayer(sp, new SyncCooldownsPayload(list, CrownHelper.isCanonicalHypercrown(sp)));
     }
 }

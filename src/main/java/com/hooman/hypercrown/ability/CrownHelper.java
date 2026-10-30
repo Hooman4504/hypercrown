@@ -4,6 +4,7 @@ import com.hooman.hypercrown.config.HypercrownConfig;
 import com.hooman.hypercrown.data.CrownPlayerData;
 import com.hooman.hypercrown.data.CrownWorldData;
 import com.hooman.hypercrown.item.CrownOwner;
+import com.hooman.hypercrown.network.ClientCrownState;
 import com.hooman.hypercrown.registry.ModRegistries;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
@@ -82,6 +83,9 @@ public final class CrownHelper {
                 && a != Ability.WEAPON_MASTERY && a != Ability.KNOCKBACK_IMMUNITY))) return false;
         if (!balanced && tacticalAbility) return false;
         if (!balanced && p instanceof ServerPlayer serverPlayer && !isCanonical(serverPlayer, crown)) return false;
+        // The client can't see the world record, so it uses the server's verdict (synced every 10 ticks);
+        // otherwise a duplicate crown would still get client-predicted flight and instant mining.
+        if (!balanced && p.level().isClientSide && !ClientCrownState.hypercrownAllowed(p.getUUID())) return false;
         if (!balanced) return true;
         if (a.active) return true;
         if (crown.isEmpty()) return false;
