@@ -10,7 +10,9 @@ import com.hooman.hypercrown.item.CrownOwner;
 import com.hooman.hypercrown.network.ModNetwork;
 import com.hooman.hypercrown.registry.ModRegistries;
 import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
@@ -35,6 +37,8 @@ import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import org.joml.Vector3f;
+
+import java.util.Collection;
 
 /** Boss tracking, the one-time awakening ritual, death handling, admin command. */
 @EventBusSubscriber(modid = HypercrownMod.MODID)
@@ -183,6 +187,12 @@ public final class CrownLifecycleEvents {
                     ctx.getSource().sendSuccess(() -> Component.literal("Hypercrown forge counter reset."), true);
                     return 1;
                 }))
+                .then(Commands.literal("resetgemcooldowns")
+                        .executes(ctx -> resetGemCooldowns(ctx.getSource(),
+                                ctx.getSource().getServer().getPlayerList().getPlayers()))
+                        .then(Commands.argument("players", EntityArgument.players())
+                                .executes(ctx -> resetGemCooldowns(ctx.getSource(),
+                                        EntityArgument.getPlayers(ctx, "players")))))
                 .then(Commands.literal("dev").executes(ctx -> {
                     DeveloperToolService.open(ctx.getSource().getPlayerOrException());
                     return 1;
@@ -198,5 +208,13 @@ public final class CrownLifecycleEvents {
                     DeveloperToolService.handle(ctx.getSource().getPlayerOrException(), "reload", "");
                     return 1;
                 }))));
+    }
+
+    private static int resetGemCooldowns(CommandSourceStack source, Collection<ServerPlayer> players) {
+        for (ServerPlayer player : players)
+            player.getData(ModRegistries.PLAYER_DATA.get()).resetGemCooldowns();
+        int count = players.size();
+        source.sendSuccess(() -> Component.literal("Reset gem cooldowns for " + count + " player(s)."), true);
+        return count;
     }
 }

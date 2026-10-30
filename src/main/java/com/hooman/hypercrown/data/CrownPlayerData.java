@@ -46,6 +46,7 @@ public class CrownPlayerData implements INBTSerializable<CompoundTag> {
     public void startCooldown(Ability a, long now, int ticks) { readyAt[a.ordinal()] = now + ticks; }
     public long gemRemaining(String gem, long now) { return Math.max(0, gemCooldowns.getOrDefault(gem, 0L) - now); }
     public void startGemCooldown(String gem, long now, int ticks) { gemCooldowns.put(gem, now + ticks); }
+    public void resetGemCooldowns() { gemCooldowns.clear(); }
 
     @Override
     public CompoundTag serializeNBT(HolderLookup.Provider provider) {

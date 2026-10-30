@@ -22,6 +22,7 @@ import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.*;
 import org.joml.Vector3f;
@@ -263,8 +264,8 @@ public final class ActiveAbilities {
             target.hurtMarked = true;
         }
         crownBurst(level, p.position().add(0, p.getBbHeight() * 0.55, 0), 52);
-        level.playSound(null, p.blockPosition(), SoundEvents.GENERIC_EXPLODE.value(),
-                SoundSource.PLAYERS, 1f, 0.8f);
+        level.explode(p, p.getX(), p.getY() + p.getBbHeight() * 0.55, p.getZ(),
+                3.0f, Level.ExplosionInteraction.NONE);
         return true;
     }
 
@@ -429,6 +430,8 @@ public final class ActiveAbilities {
                     .add(up.scale(Math.sin(angle) * impactRadius));
             sendBeamParticles(level, i % 2 == 0 ? beamCore : beamShell, flare.x, flare.y, flare.z, 1, 0, 0, 0, 0);
         }
+        level.explode(p, end.x, end.y, end.z, 1.5f + charge * 2.5f,
+                thunderDiamond ? Level.ExplosionInteraction.BLOCK : Level.ExplosionInteraction.NONE);
         level.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.WARDEN_SONIC_BOOM, SoundSource.PLAYERS, 1f, 1.2f);
     }
 

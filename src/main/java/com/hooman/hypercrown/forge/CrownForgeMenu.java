@@ -1,6 +1,7 @@
 package com.hooman.hypercrown.forge;
 
 import com.hooman.hypercrown.ability.CrownHelper;
+import com.hooman.hypercrown.event.CrownWeaponEvents;
 import com.hooman.hypercrown.registry.ModRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.SimpleContainer;
@@ -63,7 +64,11 @@ public final class CrownForgeMenu extends AbstractContainerMenu {
     }
 
     private void consumeRecipe() {
-        if (CrownForgeRecipes.find(inputs) == null) return;
+        CrownWeaponKind recipe = CrownForgeRecipes.find(inputs);
+        if (recipe == null) return;
+        for (CrownWeaponEvents.ForgingStage stage : CrownWeaponEvents.ForgingStage.values()) {
+            CrownWeaponEvents.triggerEvent(stage, recipe.kindName());
+        }
         for (int slot = 0; slot < INPUT_SLOTS; slot++) {
             ItemStack input = inputs.getItem(slot);
             if (!input.isEmpty()) input.shrink(1);

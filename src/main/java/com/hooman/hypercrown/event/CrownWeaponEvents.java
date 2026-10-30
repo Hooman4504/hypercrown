@@ -22,6 +22,17 @@ import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 public final class CrownWeaponEvents {
     private CrownWeaponEvents() {}
 
+    public enum ForgingStage {
+        INITIATE,
+        HEAT_TEMPER,
+        INCARNATE_FORM,
+        FINAL_BINDING
+    }
+
+    public static void triggerEvent(ForgingStage stage, String weaponName) {
+        HypercrownMod.LOGGER.info("Forging {}: {}", stage, weaponName);
+    }
+
     @SubscribeEvent
     public static void onForgedWeaponHit(LivingDamageEvent.Post event) {
         if (!(event.getSource().getEntity() instanceof ServerPlayer player)
