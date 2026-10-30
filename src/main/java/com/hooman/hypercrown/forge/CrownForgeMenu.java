@@ -108,6 +108,9 @@ public final class CrownForgeMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return player.isAlive() && CrownHelper.isHypercrown(player) && CrownHelper.isCrownActive(player);
+        if (!player.isAlive()) return false;
+        return player instanceof net.minecraft.server.level.ServerPlayer serverPlayer
+                ? CrownHelper.isCanonicalHypercrown(serverPlayer)
+                : CrownHelper.isHypercrown(player) && CrownHelper.isCrownActive(player);
     }
 }

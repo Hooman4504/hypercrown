@@ -8,6 +8,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -31,6 +32,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.Tags;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,6 +46,7 @@ public final class GemEffects {
     private static final List<Zone> ZONES = new ArrayList<>();
     private static final List<Trail> TRAILS = new ArrayList<>();
     private static final int BLOCK_CHANGE_BUDGET = 24_000;
+    private static final String FROZEN_TAG = "hypercrown_time_frozen";
     private static final ThreadLocal<String> ACTIVE_VISUAL = new ThreadLocal<>();
 
     private GemEffects() {}
@@ -548,9 +551,9 @@ public final class GemEffects {
     private static void tickTimeStop(ServerLevel level, Zone zone) {
         AABB box = new AABB(zone.center, zone.center).inflate(50);
         for (Entity entity : level.getEntitiesOfClass(Entity.class, box,
-                e -> e.isAlive() && !e.getUUID().equals(zone.owner) && e.position().distanceToSqr(zone.center) <= 2500)) {
-            Frozen frozen = zone.frozen.computeIfAbsent(entity.getUUID(), id -> new Frozen(entity.getDeltaMovement(), entity.isNoGravity(),
-                    entity instanceof Mob mob && mob.isNoAi(), entity.position()));
+                e -> e.isAlive() && !e.getUUID().equals(zone.owner) && !e.getType().is(Tags.EntityTypes.BOSSES)
+                        && e.position().distanceToSqr(zone.center) <= 2500)) {
+            Frozen frozen = zone.frozen.computeIfAbsent(entity.getUUID(), id -> markFrozen(entity));
             entity.setDeltaMovement(Vec3.ZERO);
             entity.setNoGravity(true);
             if (entity instanceof Mob mob) mob.setNoAi(true);
@@ -564,12 +567,46 @@ public final class GemEffects {
         for (Map.Entry<UUID, Frozen> entry : zone.frozen.entrySet()) {
             Entity entity = level.getEntity(entry.getKey());
             if (entity == null) continue;
-            Frozen frozen = entry.getValue();
-            entity.setNoGravity(frozen.noGravity);
-            entity.setDeltaMovement(frozen.velocity);
-            if (entity instanceof Mob mob) mob.setNoAi(frozen.noAi);
-            entity.hurtMarked = true;
+            entity.setDeltaMovement(entry.getValue().velocity);
+            restoreFrozen(entity);
         }
+    }
+
+    /**
+     * Records the pre-freeze flags on the entity itself so they survive unloads, logouts and restarts:
+     * zones are in-memory only, and NoAI/NoGravity are saved with the entity.
+     */
+    static Frozen markFrozen(Entity entity) {
+        boolean noAi = entity instanceof Mob mob && mob.isNoAi();
+        CompoundTag tag = new CompoundTag();
+        tag.putBoolean("noGravity", entity.isNoGravity());
+        tag.putBoolean("noAi", noAi);
+        entity.getPersistentData().put(FROZEN_TAG, tag);
+        return new Frozen(entity.getDeltaMovement(), entity.isNoGravity(), noAi, entity.position());
+    }
+
+    private static void restoreFrozen(Entity entity) {
+        CompoundTag tag = entity.getPersistentData().getCompound(FROZEN_TAG);
+        if (!entity.getPersistentData().contains(FROZEN_TAG)) return;
+        entity.setNoGravity(tag.getBoolean("noGravity"));
+        if (entity instanceof Mob mob) mob.setNoAi(tag.getBoolean("noAi"));
+        entity.getPersistentData().remove(FROZEN_TAG);
+        entity.hurtMarked = true;
+    }
+
+    /** Restores an entity that was frozen when its zone ended without it loaded (or the server stopped). */
+    public static void onEntityJoin(Entity entity) {
+        if (!entity.getPersistentData().contains(FROZEN_TAG)) return;
+        for (Zone zone : ZONES)
+            if (zone.kind == ZoneKind.TIME_STOP && zone.frozen.containsKey(entity.getUUID())) return;
+        restoreFrozen(entity);
+    }
+
+    /** Ends every zone cleanly; called when the server stops so no frozen state is saved. */
+    public static void releaseAll() {
+        for (Zone zone : ZONES) if (zone.kind == ZoneKind.TIME_STOP) releaseFrozen(zone.level, zone);
+        ZONES.clear();
+        TRAILS.clear();
     }
 
     private enum ZoneKind { FROST, VOID_RIFT, TORNADO, TIME_STOP }

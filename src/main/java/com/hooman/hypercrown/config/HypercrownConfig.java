@@ -12,7 +12,8 @@ public final class HypercrownConfig {
     private static final Map<Ability, ModConfigSpec.IntValue> COOLDOWN = new EnumMap<>(Ability.class);
 
     public static final ModConfigSpec SPEC;
-    public static final ModConfigSpec.BooleanValue CROWN_ENABLED, ALLOW_TRANSFER, ALLOW_UNFORGED, KEEP_ON_DEATH;
+    public static final ModConfigSpec.BooleanValue CROWN_ENABLED, ALLOW_TRANSFER, ALLOW_UNFORGED, KEEP_ON_DEATH,
+            CREATIVE_RITUAL_COUNTS;
     public static final ModConfigSpec.IntValue MAX_CROWNS, RITUAL_XP_LEVELS, BLINK_RANGE, BEAM_RANGE, IFRAME_TICKS;
     public static final ModConfigSpec.DoubleValue POWER_SCALE, SPEED_BONUS, DAMAGE_BONUS, DAMAGE_REDUCTION,
             REFLECT_FRACTION, INSTANT_KILL_CHANCE, BEAM_DAMAGE;
@@ -27,10 +28,15 @@ public final class HypercrownConfig {
 
         b.comment("Global / multiplayer settings").push("general");
         CROWN_ENABLED = b.comment("Master switch. false = crown has no powers and cannot be forged.").define("crownEnabled", true);
-        MAX_CROWNS = b.comment("Only one Hypercrown may be forged per world.").defineInRange("maxCrownsPerWorld", 1, 1, 1);
-        ALLOW_TRANSFER = b.comment("If false, only the player who forged the Hypercrown can use its powers.").define("allowTransfer", false);
-        ALLOW_UNFORGED = b.comment("Do crowns from the creative tab / commands (no forger) have powers?").define("allowUnforgedCrowns", true);
-        KEEP_ON_DEATH = b.comment("Hypercrown returns to its wearer on respawn instead of dropping.").define("keepOnDeath", true);
+        MAX_CROWNS = b.comment("Only one Hypercrown may be forged per world (fixed at 1; reserved for future use).").defineInRange("maxCrownsPerWorld", 1, 1, 1);
+        ALLOW_TRANSFER = b.comment("If true (and keepOnDeath is false), a player who kills the crown's owner becomes its new owner.",
+                "Only the recorded owner can ever use the Hypercrown's powers.").define("allowTransfer", false);
+        ALLOW_UNFORGED = b.comment("Do crowns from the creative tab / commands (no owner) have powers? Only until a crown is forged in this world.").define("allowUnforgedCrowns", true);
+        KEEP_ON_DEATH = b.comment("Hypercrown returns to its owner on respawn instead of dropping (it is then never transferred).",
+                "Crowns inside container items (e.g. shulker boxes) still drop.").define("keepOnDeath", true);
+        CREATIVE_RITUAL_COUNTS = b.comment("Does a creative-mode awakening ritual use up the world's crown? If false, it makes an",
+                "active test crown that a later survival ritual replaces (the test crown then becomes inert).")
+                .define("creativeRitualCountsTowardLimit", false);
         RITUAL_XP_LEVELS = b.comment("XP levels sacrificed in the awakening ritual.").defineInRange("ritualXpLevels", 50, 0, 1000);
         POWER_SCALE = b.comment("Multiplier applied to Hypercrown ability strengths.").defineInRange("powerScale", 1.0, 0.0, 10.0);
         b.pop();
@@ -83,7 +89,8 @@ public final class HypercrownConfig {
 
         b.comment("World interaction limits").push("gemWorld");
         ALLOW_GEMS_IN_SPAWN = b.comment("Allow catastrophe gems inside the world spawn protection radius.").define("allowGemsInSpawn", false);
-        ALLOW_GEMS_IN_CLAIMED_LAND = b.comment("Allow gem effects inside land claimed by supported claim mods.").define("allowGemsInClaimedLand", true);
+        ALLOW_GEMS_IN_CLAIMED_LAND = b.comment("If false, gem activation posts GemProtectionCheckEvent so a claim integration can block it.",
+                "Hypercrown ships no claim-mod integrations; without one, this setting has no effect.").define("allowGemsInClaimedLand", true);
         MAX_CRATER_SIZE = b.comment("Maximum radius of gem-created craters and block clearing (blocks).")
                 .defineInRange("maxCraterSize", 25, 1, 25);
         b.pop();

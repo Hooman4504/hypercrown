@@ -46,6 +46,32 @@ public final class CrownHelper {
         return false;
     }
 
+    /**
+     * Server-side: is the worn Hypercrown the world's recorded crown, held by its recorded owner?
+     * Use this (not {@link #isCrownActive}) for anything that must reject reset, stale, or copied crowns.
+     */
+    public static boolean isCanonicalHypercrown(ServerPlayer p) {
+        return isHypercrown(p) && isCrownActive(p) && isCanonical(p, wornCrown(p));
+    }
+
+    private static boolean isCanonical(ServerPlayer serverPlayer, ItemStack crown) {
+        CrownWorldData worldData = CrownWorldData.get(serverPlayer.getServer());
+        CrownOwner owner = crown.get(ModRegistries.OWNER.get());
+        if (owner == null) {
+            if (!HypercrownConfig.ALLOW_UNFORGED.get() || worldData.currentOwner() != null) return false;
+        } else if (!owner.id().equals(worldData.currentOwner())) {
+            return false;
+        }
+        UUID itemId = crown.get(ModRegistries.CROWN_ID.get());
+        if (itemId == null) {
+            if (worldData.crownId() != null) return false;
+            itemId = UUID.randomUUID();
+            crown.set(ModRegistries.CROWN_ID.get(), itemId);
+            worldData.claimLegacyCrownId(itemId);
+        }
+        return itemId.equals(worldData.crownId());
+    }
+
     public static boolean has(Player p, Ability a) {
         if (!isCrownActive(p) || !HypercrownConfig.enabled(a)) return false;
         ItemStack crown = wornCrown(p);
@@ -55,23 +81,7 @@ public final class CrownHelper {
         if (balanced && !tacticalAbility && (a.active || (a != Ability.SPEED && a != Ability.DAMAGE_REDUCTION
                 && a != Ability.WEAPON_MASTERY && a != Ability.KNOCKBACK_IMMUNITY))) return false;
         if (!balanced && tacticalAbility) return false;
-        if (!balanced && p instanceof ServerPlayer serverPlayer) {
-            CrownWorldData worldData = CrownWorldData.get(serverPlayer.getServer());
-            CrownOwner owner = crown.get(ModRegistries.OWNER.get());
-            if (owner == null) {
-                if (!HypercrownConfig.ALLOW_UNFORGED.get() || worldData.currentOwner() != null) return false;
-            } else if (!owner.id().equals(worldData.currentOwner())) {
-                return false;
-            }
-            UUID itemId = crown.get(ModRegistries.CROWN_ID.get());
-            if (itemId == null) {
-                if (worldData.crownId() != null) return false;
-                itemId = UUID.randomUUID();
-                crown.set(ModRegistries.CROWN_ID.get(), itemId);
-                worldData.claimLegacyCrownId(itemId);
-            }
-            if (!itemId.equals(worldData.crownId())) return false;
-        }
+        if (!balanced && p instanceof ServerPlayer serverPlayer && !isCanonical(serverPlayer, crown)) return false;
         if (!balanced) return true;
         if (a.active) return true;
         if (crown.isEmpty()) return false;

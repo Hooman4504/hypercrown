@@ -77,11 +77,21 @@ public final class ActiveAbilities {
             default -> false;
         };
         if (consumed) {
-            data.startCooldown(ability, now, HypercrownConfig.cooldownTicks(ability));
+            startSlotCooldown(data, ability, now, HypercrownConfig.cooldownTicks(ability));
             markUsed(p, data, ability);
             playActivationSound(p, ability);
             ModNetwork.syncTo(p);
         }
+    }
+
+    /**
+     * Starts the ability's cooldown and locks its slot partner for at least as long, so the client-side
+     * alternate selection cannot be bypassed to chain both abilities of one key slot.
+     */
+    public static void startSlotCooldown(CrownPlayerData data, Ability ability, long now, int ticks) {
+        data.startCooldown(ability, now, ticks);
+        Ability partner = ability.slotPartner();
+        if (partner != null && data.remaining(partner, now) < ticks) data.startCooldown(partner, now, ticks);
     }
 
     private static void playActivationSound(ServerPlayer player, Ability ability) {
@@ -353,7 +363,7 @@ public final class ActiveAbilities {
                 .get(ModRegistries.SOCKETED_CATASTROPHE_GEM.get()));
         fireBeam(p, charge, thunderDiamond);
         int cooldown = HypercrownConfig.cooldownTicks(Ability.ENERGY_BEAM);
-        d.startCooldown(Ability.ENERGY_BEAM, now,
+        startSlotCooldown(d, Ability.ENERGY_BEAM, now,
                 thunderDiamond ? cooldown * THUNDER_BEAM_COOLDOWN_MULTIPLIER : cooldown);
         markUsed(p, d, Ability.ENERGY_BEAM);
         playActivationSound(p, Ability.ENERGY_BEAM);

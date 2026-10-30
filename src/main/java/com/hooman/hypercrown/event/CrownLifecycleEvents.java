@@ -103,7 +103,14 @@ public final class CrownLifecycleEvents {
         crown.set(ModRegistries.OWNER.get(), new CrownOwner(sp.getUUID(), sp.getGameProfile().getName()));
         crown.set(ModRegistries.CROWN_ID.get(), crownId);
         sp.setItemInHand(event.getHand(), crown);
-        world.recordForge(sp.getUUID(), crownId);
+        boolean uncountedTest = sp.isCreative() && !HypercrownConfig.CREATIVE_RITUAL_COUNTS.get();
+        if (uncountedTest) {
+            world.recordUncountedForge(sp.getUUID(), crownId);
+            sp.displayClientMessage(Component.translatable("message.hypercrown.ritual.creative_test")
+                    .withStyle(ChatFormatting.YELLOW), false);
+        } else {
+            world.recordForge(sp.getUUID(), crownId);
+        }
 
         LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(sl);
         if (bolt != null) { bolt.moveTo(Vec3.atBottomCenterOf(pos)); bolt.setVisualOnly(true); sl.addFreshEntity(bolt); }
@@ -124,7 +131,7 @@ public final class CrownLifecycleEvents {
             sl.sendParticles(i % 2 == 0 ? gold : violet, x, pos.getY() + 0.15, z, 1, 0, 0.025, 0, 0);
         }
         sl.playSound(null, pos, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 2f, 1f);
-        sp.getServer().getPlayerList().broadcastSystemMessage(
+        if (!uncountedTest) sp.getServer().getPlayerList().broadcastSystemMessage(
                 Component.translatable("message.hypercrown.forged", sp.getDisplayName()).withStyle(ChatFormatting.GOLD), false);
     }
 

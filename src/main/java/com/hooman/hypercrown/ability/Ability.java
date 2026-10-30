@@ -27,5 +27,20 @@ public enum Ability {
 
     public String langKey() { return "ability.hypercrown." + key(); }
 
+    /** The other ability sharing this one's Hypercrown key slot, or null. Slot partners share a cooldown. */
+    public Ability slotPartner() {
+        return switch (this) {
+            case BLINK -> PHASE_DASH;
+            case PHASE_DASH -> BLINK;
+            case ANCHOR -> TIME_SNARE;
+            case TIME_SNARE -> ANCHOR;
+            case ENERGY_BEAM -> CHAIN_LIGHTNING;
+            case CHAIN_LIGHTNING -> ENERGY_BEAM;
+            case WEATHER_CONTROL -> CROWN_NOVA;
+            case CROWN_NOVA -> WEATHER_CONTROL;
+            default -> null;
+        };
+    }
+
     public static final List<Ability> ACTIVES = Arrays.stream(values()).filter(a -> a.active).toList();
 }

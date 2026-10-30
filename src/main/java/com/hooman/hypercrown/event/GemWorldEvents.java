@@ -21,6 +21,8 @@ import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 
 import static com.hooman.hypercrown.HypercrownMod.MODID;
 
@@ -127,5 +129,15 @@ public final class GemWorldEvents {
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event) {
         for (ServerLevel level : event.getServer().getAllLevels()) GemEffects.tick(level);
+    }
+
+    @SubscribeEvent
+    public static void onEntityJoin(EntityJoinLevelEvent event) {
+        if (!event.getLevel().isClientSide()) GemEffects.onEntityJoin(event.getEntity());
+    }
+
+    @SubscribeEvent
+    public static void onServerStopping(ServerStoppingEvent event) {
+        GemEffects.releaseAll();
     }
 }

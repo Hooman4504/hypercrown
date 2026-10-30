@@ -49,6 +49,8 @@ public class CrownWorldData extends SavedData {
     public UUID currentOwner() { return currentOwner; }
     public UUID crownId() { return crownId; }
     public void recordForge(UUID player, UUID id) { crownsForged++; forgers.add(player); currentOwner = player; crownId = id; setDirty(); }
+    /** Makes a crown canonical without using up the world's forge limit (creative test rituals). */
+    public void recordUncountedForge(UUID player, UUID id) { currentOwner = player; crownId = id; setDirty(); }
     public void claimLegacyCrownId(UUID id) { if (crownId == null) { crownId = id; setDirty(); } }
     public void transferOwnership(UUID player) { currentOwner = player; setDirty(); }
     public void reset() { crownsForged = 0; forgers.clear(); currentOwner = null; crownId = null; setDirty(); }

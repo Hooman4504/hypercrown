@@ -10,7 +10,7 @@ public final class CrownForgeHandler {
     private CrownForgeHandler() {}
 
     public static void open(ServerPlayer player) {
-        if (!CrownHelper.isHypercrown(player) || !CrownHelper.isCrownActive(player)) return;
+        if (!CrownHelper.isCanonicalHypercrown(player)) return;
         player.openMenu(new SimpleMenuProvider((containerId, inventory, user) ->
                 new CrownForgeMenu(containerId, inventory),
                 Component.translatable("container.hypercrown.crown_forge")));

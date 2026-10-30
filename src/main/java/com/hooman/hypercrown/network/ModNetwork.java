@@ -16,7 +16,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Server particle emissions and shared client visual settings. */
+/** Payload registration, server-side packet handlers, and cooldown sync. */
 public final class ModNetwork {
 
     public static void register(RegisterPayloadHandlersEvent event) {
