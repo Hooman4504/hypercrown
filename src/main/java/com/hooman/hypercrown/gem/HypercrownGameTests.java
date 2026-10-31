@@ -18,6 +18,11 @@ import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.item.ItemStack;
 import com.mojang.authlib.GameProfile;
 import net.neoforged.neoforge.common.util.FakePlayerFactory;
+import com.hooman.hypercrown.config.HypercrownConfig;
+import com.hooman.hypercrown.event.GemProtectionCheckEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -28,6 +33,38 @@ import java.util.UUID;
 @PrefixGameTestTemplate(false)
 public final class HypercrownGameTests {
     private HypercrownGameTests() {}
+
+    /** Chunk X the test claim listener reports as claimed, or null when no test is using it. */
+    private static volatile Integer claimedChunkX;
+    private static boolean claimListenerRegistered;
+
+    /** Line effects stop at the first claimed chunk instead of passing through it. */
+    @GameTest(template = "test_floor")
+    public static void lineEffectStopsAtClaimedChunk(GameTestHelper helper) {
+        if (!claimListenerRegistered) {
+            NeoForge.EVENT_BUS.addListener((GemProtectionCheckEvent event) -> {
+                Integer claimed = claimedChunkX;
+                if (claimed != null && event.center().getX() >> 4 == claimed) event.setCanceled(true);
+            });
+            claimListenerRegistered = true;
+        }
+        BlockPos origin = helper.absolutePos(new BlockPos(1, 1, 1));
+        int blocked = (origin.getX() >> 4) + 1;
+        boolean previous = HypercrownConfig.ALLOW_GEMS_IN_CLAIMED_LAND.get();
+        claimedChunkX = blocked;
+        HypercrownConfig.ALLOW_GEMS_IN_CLAIMED_LAND.set(false);
+        try {
+            double length = new GemProtection(helper.getLevel(), null)
+                    .allowedLength(Vec3.atCenterOf(origin), new Vec3(1, 0, 0), 40, 0);
+            double boundary = (blocked << 4) - (origin.getX() + 0.5);
+            helper.assertTrue(length < boundary, "line entered the claimed chunk (length " + length + ")");
+            helper.assertTrue(length >= boundary - 1, "line stopped too early (length " + length + ")");
+        } finally {
+            claimedChunkX = null;
+            HypercrownConfig.ALLOW_GEMS_IN_CLAIMED_LAND.set(previous);
+        }
+        helper.succeed();
+    }
 
     /** A mob saved while frozen by Time Quartz must come back with its AI and gravity once reloaded. */
     @GameTest(template = "test_floor")

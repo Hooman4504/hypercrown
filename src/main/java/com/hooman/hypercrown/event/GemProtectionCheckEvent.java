@@ -7,7 +7,9 @@ import net.neoforged.bus.api.Event;
 import net.neoforged.bus.api.ICancellableEvent;
 
 /**
- * Optional claim-mod hook. When the allow-claimed-land server option is false,
+ * Optional claim-mod hook. Posted at activation and, for effects that travel (line gems, the tornado, the
+ * Thunder Diamond beam), once per chunk along the path. {@link #user()} is null when the gem's user is offline.
+ * When the allow-claimed-land server option is false,
  * claim integrations can cancel this event if the effect area touches a protected claim.
  */
 public final class GemProtectionCheckEvent extends Event implements ICancellableEvent {
@@ -23,7 +25,7 @@ public final class GemProtectionCheckEvent extends Event implements ICancellable
         this.radius = radius;
     }
 
-    public ServerPlayer user() { return user; }
+    public @org.jetbrains.annotations.Nullable ServerPlayer user() { return user; }
     public ServerLevel level() { return level; }
     public BlockPos center() { return center; }
     public int radius() { return radius; }

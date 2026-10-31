@@ -140,11 +140,12 @@ public final class GemEffects {
     private static void giantSlash(ServerLevel level, ServerPlayer user, Vec3 direction, double strength) {
         Vec3 start = user.getEyePosition();
         Vec3 axis = direction.normalize();
-        Vec3 end = start.add(axis.scale(50));
+        double length = new GemProtection(level, user).allowedLength(start, axis, 50, 3);
+        Vec3 end = start.add(axis.scale(length));
         Vec3 reference = Math.abs(axis.y) > 0.94 ? new Vec3(1, 0, 0) : new Vec3(0, 1, 0);
         Vec3 right = axis.cross(reference).normalize();
         Vec3 up = right.cross(axis).normalize();
-        for (double t = 0; t <= 50; t += 0.8) {
+        for (double t = 0; t <= length; t += 0.8) {
             Vec3 point = start.add(axis.scale(t));
             for (int w = -2; w <= 2; w++) for (int h = -2; h <= 2; h++) {
                 BlockPos pos = BlockPos.containing(point.add(right.scale(w)).add(up.scale(h)));
@@ -156,7 +157,7 @@ public final class GemEffects {
         }
         TRAILS.add(new Trail(level, start, end, right, up, 200));
         level.playSound(null, BlockPos.containing(start), SoundEvents.WITHER_BREAK_BLOCK, SoundSource.PLAYERS, 3, 0.7f);
-        for (int i = 0; i < 64; i++) {
+        for (int i = 0; i < 64 && i * 0.78 <= length; i++) {
             double t = i * 0.78;
             Vec3 point = start.add(axis.scale(t));
             emitParticles(level, ParticleTypes.SWEEP_ATTACK, point.x, point.y, point.z, 2, 0.2, 1.1, 1.8, 0);
@@ -166,8 +167,9 @@ public final class GemEffects {
 
     private static void railgun(ServerLevel level, ServerPlayer user, Vec3 direction, double strength) {
         Vec3 start = user.getEyePosition();
-        Vec3 end = start.add(direction.normalize().scale(100));
-        for (double t = 0; t < 100; t += 0.65) {
+        double length = new GemProtection(level, user).allowedLength(start, direction, 100, 2);
+        Vec3 end = start.add(direction.normalize().scale(length));
+        for (double t = 0; t < length; t += 0.65) {
             Vec3 point = start.add(direction.normalize().scale(t));
             for (int a = -1; a <= 1; a++) for (int b = -1; b <= 1; b++) {
                 Vec3 offset = Math.abs(direction.y) > 0.85 ? new Vec3(a, 0, b) : new Vec3(a, b, 0);
@@ -192,7 +194,7 @@ public final class GemEffects {
             hit.add(next);
             previous = next;
         }
-        for (double t = 0; t < 100; t += 2.2) {
+        for (double t = 0; t < length; t += 2.2) {
             Vec3 p = start.add(direction.normalize().scale(t));
             emitParticles(level, ParticleTypes.ELECTRIC_SPARK, p.x, p.y, p.z, 12, 0.25, 0.25, 0.25, 0.25);
             if (t % 6 < 2.2) emitParticles(level, ParticleTypes.END_ROD, p.x, p.y, p.z, 2, 0.05, 0.05, 0.05, 0.03);
@@ -506,6 +508,13 @@ public final class GemEffects {
         if (level.getGameTime() % 5 == 0) {
             zone.direction = zone.direction.add((level.getRandom().nextDouble() - 0.5) * 0.08, 0, (level.getRandom().nextDouble() - 0.5) * 0.08).normalize();
             zone.center = zone.center.add(zone.direction.scale(0.12));
+            if (zone.protection == null)
+                zone.protection = new GemProtection(level, level.getServer().getPlayerList().getPlayer(zone.owner));
+            // The tornado wanders, so re-check where it is; it dissipates at protected or unloaded land.
+            if (!zone.protection.allows(BlockPos.containing(zone.center), 10)) {
+                zone.ticksLeft = Math.min(zone.ticksLeft, 1);
+                return;
+            }
             int x = Mth.floor(zone.center.x + level.getRandom().nextInt(-6, 7));
             int z = Mth.floor(zone.center.z + level.getRandom().nextInt(-6, 7));
             int y = Mth.floor(zone.center.y + level.getRandom().nextInt(0, 25));
@@ -619,6 +628,7 @@ public final class GemEffects {
         private Vec3 direction = new Vec3(1, 0, 0);
         private final Map<UUID, Frozen> frozen = new HashMap<>();
         private final List<UUID> captured = new ArrayList<>();
+        private GemProtection protection;
         private final ServerLevel level;
 
         private Zone(ServerLevel level, ZoneKind kind, UUID owner, Vec3 center, int ticksLeft) {

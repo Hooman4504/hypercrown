@@ -84,7 +84,7 @@ public final class GemActivationHandler {
             target = Vec3.atCenterOf(pos);
         }
         int protectionRadius = effectRadius(gem);
-        if (!HypercrownConfig.ALLOW_GEMS_IN_SPAWN.get() && inSpawnProtection(level, target, protectionRadius)) {
+        if (!HypercrownConfig.ALLOW_GEMS_IN_SPAWN.get() && GemProtection.inSpawnProtection(level, target, protectionRadius)) {
             message(player, "message.hypercrown.gem.spawn_protected");
             return;
         }
@@ -248,15 +248,6 @@ public final class GemActivationHandler {
             case WIND_SAPPHIRE -> 40;
             case TIME_QUARTZ -> 50;
         };
-    }
-
-    private static boolean inSpawnProtection(ServerLevel level, Vec3 pos, int radius) {
-        if (level != level.getServer().overworld()) return false;
-        int configuredRadius = level.getServer().getSpawnProtectionRadius();
-        if (configuredRadius <= 0) return false;
-        BlockPos spawn = level.getSharedSpawnPos();
-        double safeRadius = configuredRadius + radius;
-        return Vec3.atCenterOf(spawn).distanceToSqr(pos) <= safeRadius * safeRadius;
     }
 
     private static void message(ServerPlayer player, String key) {

@@ -5,6 +5,7 @@ import com.hooman.hypercrown.config.HypercrownConfig;
 import com.hooman.hypercrown.data.CrownPlayerData;
 import com.hooman.hypercrown.dev.DeveloperToolService;
 import com.hooman.hypercrown.dev.DeveloperWorkspace;
+import com.hooman.hypercrown.gem.GemProtection;
 import com.hooman.hypercrown.network.ModNetwork;
 import com.hooman.hypercrown.registry.ModRegistries;
 import net.minecraft.advancements.AdvancementHolder;
@@ -22,6 +23,7 @@ import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.*;
@@ -440,8 +442,12 @@ public final class ActiveAbilities {
                     .add(up.scale(Math.sin(angle) * impactRadius));
             sendBeamParticles(level, i % 2 == 0 ? beamCore : beamShell, flare.x, flare.y, flare.z, 1, 0, 0, 0, 0);
         }
-        level.explode(p, end.x, end.y, end.z, 1.5f + charge * 2.5f,
-                thunderDiamond ? Level.ExplosionInteraction.BLOCK : Level.ExplosionInteraction.NONE);
+        float power = 1.5f + charge * 2.5f;
+        // Socketed Thunder Diamond makes the impact break blocks; apply the same world rules as gems.
+        boolean breakBlocks = thunderDiamond && level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)
+                && new GemProtection(level, p).allows(BlockPos.containing(end), Mth.ceil(power));
+        level.explode(p, end.x, end.y, end.z, power,
+                breakBlocks ? Level.ExplosionInteraction.BLOCK : Level.ExplosionInteraction.NONE);
         level.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.WARDEN_SONIC_BOOM, SoundSource.PLAYERS, 1f, 1.2f);
     }
 
